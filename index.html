@@ -4,6 +4,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Land Installment Calculator</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#14b8a6" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Perch Calc" />
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAACsUlEQVR4nO3d0W3UQBhGUYIoIdREDTSYtBBqoojwZIlHsmHj+LvnFLAejeaO5Zd/Hx5fnl6/QNTXsxcAZxIAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQNq3sxdwb79//Lzr73//9fwhzznz2cdzFs0GcMaBXHXs5WIIcwE4+PezGMLUN4DD/zGW9nkqAHirmQCWbqUrWNnvmQDgFhMBrNxGV7Ow7xMBwK0EQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYC0h8eXp9ezFwFn8QYgbWI8+pkTygp/kPEva7gqbwDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGnGo5PmDUCa8ejvZDy68ehwWQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQNpEAFefTXNVC/s+EQDcaiaAhdvoSlb2eyYAuMVUACu30me3tM8Tw3H/9hkGxq5aOviHuQAOQvh/Fg/+wR9kkDb1DQBvJQDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApP0BG6tKT74yMzkAAAAASUVORK5CYII=" />
 <style>
   :root{
     --bg:#f1f5f9; --card:#fff; --border:#e2e8f0; --field:#f8fafc;
@@ -65,11 +72,11 @@
   .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-top:5px;padding:0 2px;}
   /* tiers */
   .tier{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-  .tier .moneywrap{flex:1;}
+  .tier .moneywrap{flex:1 1 auto;min-width:0;}
   .tier .moneywrap input{font-size:13px;padding-top:9px;padding-bottom:9px;}
-  .perchbox{width:78px;text-align:center;font-size:13px;}
-  .sub{width:120px;text-align:right;font-size:12px;font-weight:600;color:var(--muted);}
-  @media(max-width:520px){.sub{display:none;}}
+  .perchbox{flex:0 0 78px;width:78px;text-align:center;font-size:13px;}
+  .tiersub{width:120px;text-align:right;font-size:12px;font-weight:600;color:var(--muted);}
+  @media(max-width:520px){.tiersub{display:none;}}
   .x{flex:0 0 auto;height:30px;width:30px;border:none;background:none;color:var(--faint);
     font-size:18px;cursor:pointer;border-radius:8px;transition:.15s;}
   .x:hover{color:#ef4444;background:#fee2e2;}
@@ -103,6 +110,33 @@
   .rows{margin-top:auto;padding-top:20px;font-size:11px;color:#94a3b8;}
   .rrow{display:flex;justify-content:space-between;padding:3px 0;}
   .rrow .v{color:#e2e8f0;font-weight:600;}
+  /* toolbar */
+  .toolbar{display:flex;gap:10px;margin:0 2px 16px;flex-wrap:wrap;}
+  .tbtn{display:inline-flex;align-items:center;gap:7px;border:none;cursor:pointer;
+    font:inherit;font-size:13px;font-weight:600;padding:9px 16px;border-radius:999px;transition:.15s;}
+  .tbtn.primary{background:var(--teal);color:#fff;box-shadow:0 2px 8px rgba(20,184,166,.3);}
+  .tbtn.primary:hover{background:var(--teal-d);}
+  .tbtn.ghost{background:#fff;color:#334155;border:1px solid var(--border);}
+  .tbtn.ghost:hover{border-color:var(--teal);color:var(--teal-d);}
+  /* print summary (screen-hidden, print-only) */
+  #printSummary{display:none;}
+  @media print{
+    @page{margin:16mm;}
+    body{padding:0;background:#fff;}
+    .toolbar,.grid{display:none !important;}
+    .head,.sub{display:none !important;}
+    #printSummary{display:block;color:#0f172a;}
+    #printSummary h2{font-size:20px;margin-bottom:2px;}
+    #printSummary .pdate{font-size:12px;color:#64748b;margin-bottom:16px;}
+    #printSummary .psec{font-size:11px;font-weight:700;letter-spacing:.5px;color:#0d9488;
+      text-transform:uppercase;margin:16px 0 6px;border-bottom:1px solid #e2e8f0;padding-bottom:4px;}
+    #printSummary .pr{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;
+      border-bottom:1px dotted #e5e9f0;}
+    #printSummary .pr .k{color:#475569;} #printSummary .pr .v{font-weight:700;}
+    #printSummary .big{display:flex;justify-content:space-between;padding:8px 0;font-size:16px;font-weight:700;}
+    #printSummary .big.amber{color:#b45309;}
+    #printSummary .foot{margin-top:20px;font-size:10px;color:#94a3b8;line-height:1.5;}
+  }
 </style>
 </head>
 <body>
@@ -112,6 +146,11 @@
     <h1>Land Installment Calculator</h1>
   </div>
   <p class="sub">Set a price per perch for each tier, add any interest-free months, and see the monthly payment, full amount payable, and total interest fee.</p>
+
+  <div class="toolbar">
+    <button class="tbtn primary" onclick="window.print()">&#128196; Save as PDF</button>
+    <button class="tbtn ghost" id="installBtn" onclick="installApp()">&#11015; Install app</button>
+  </div>
 
   <div class="grid">
     <!-- inputs -->
@@ -205,6 +244,7 @@
       </div>
     </div>
   </div>
+  <div id="printSummary"></div>
 </div>
 
 <script>
@@ -245,7 +285,7 @@
       ce.addEventListener("input",function(){state.tiers[i].count=ce.value;render();});
       row.appendChild(ce);
 
-      var sub=document.createElement("span"); sub.className="sub"; sub.id="sub"+i;
+      var sub=document.createElement("span"); sub.className="tiersub"; sub.id="sub"+i;
       row.appendChild(sub);
 
       var rm=document.createElement("button"); rm.className="x"; rm.innerHTML="&times;";
@@ -326,8 +366,49 @@
     document.getElementById("xFin").textContent=money(principal);
     document.getElementById("xFree").textContent=fM+" months";
     document.getElementById("xInst").textContent=money(installmentsTotal);
+
+    // ---- build the printable PDF summary ----
+    var tierRows=state.tiers.map(function(t){
+      var pr=clampNum(t.price), c=clampNum(t.count);
+      return '<div class="pr"><span class="k">'+money(pr)+' / perch &times; '+c+' perches</span>'+
+             '<span class="v">'+money(pr*c)+'</span></div>';
+    }).join("");
+    var methodName=(state.method==="flat")?"Flat rate":"Reducing balance";
+    var d=new Date();
+    document.getElementById("printSummary").innerHTML=
+      '<h2>Land Installment Calculation</h2>'+
+      '<div class="pdate">Generated '+d.toLocaleDateString()+' '+d.toLocaleTimeString()+'</div>'+
+      '<div class="psec">Land price</div>'+tierRows+
+      '<div class="pr"><span class="k">Total land price ('+totalPerches+' perches)</span><span class="v">'+money(totalPrice)+'</span></div>'+
+      '<div class="psec">Terms</div>'+
+      '<div class="pr"><span class="k">Down payment</span><span class="v">'+money(down)+' ('+downPct+'%)</span></div>'+
+      '<div class="pr"><span class="k">Amount financed</span><span class="v">'+money(principal)+'</span></div>'+
+      '<div class="pr"><span class="k">Term</span><span class="v">'+n+' months</span></div>'+
+      '<div class="pr"><span class="k">Interest-free period</span><span class="v">'+fM+' months</span></div>'+
+      '<div class="pr"><span class="k">Interest rate</span><span class="v">'+rate+'% / year ('+methodName+')</span></div>'+
+      '<div class="psec">Result</div>'+
+      '<div class="pr"><span class="k">Monthly installment</span><span class="v">'+money(monthly)+' &times; '+n+'</span></div>'+
+      '<div class="pr"><span class="k">Total of installments</span><span class="v">'+money(installmentsTotal)+'</span></div>'+
+      '<div class="big"><span>Full payment</span><span>'+money(fullPayment)+'</span></div>'+
+      '<div class="big amber"><span>Full interest fee</span><span>'+money(totalInterest)+'</span></div>'+
+      '<div class="foot">Figures are estimates for guidance only. Confirm exact terms with the seller or lender before committing.</div>';
   }
   renderTiers(); render();
+
+  // ---- install as app (PWA) ----
+  var deferredPrompt=null;
+  window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferredPrompt=e;});
+  function installApp(){
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.finally(function(){deferredPrompt=null;});
+    }else{
+      alert("To install:\n\nAndroid / Chrome: open the browser menu (\u22ee) and tap \"Install app\" or \"Add to Home screen\".\n\niPhone / Safari: tap the Share button, then \"Add to Home Screen\".");
+    }
+  }
+  if("serviceWorker" in navigator){
+    window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});
+  }
 </script>
 </body>
 </html>
