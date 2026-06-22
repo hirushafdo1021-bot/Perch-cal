@@ -134,7 +134,6 @@
   </div>
 
   <div class="grid">
-    <!-- inputs -->
     <div class="panel">
       <div class="toprow">
         <div class="seg">
@@ -158,7 +157,6 @@
         <span class="amt" id="totalPrice"></span>
       </div>
 
-      <!-- down -->
       <div class="field">
         <div class="fieldhead"><span class="fieldlabel">Down payment</span><span class="hint" id="downHint"></span></div>
         <div class="moneywrap"><span id="downSym">Rs.</span>
@@ -166,7 +164,6 @@
         <input type="range" id="downR" min="0" max="100" oninput="onSlider('down')">
       </div>
 
-      <!-- term -->
       <div class="field">
         <div class="fieldhead"><span class="fieldlabel">Term</span>
           <span class="hint" style="display:flex;align-items:center;gap:6px;color:var(--muted)">
@@ -175,7 +172,6 @@
         <div class="ticks"><span>1 mo</span><span id="yearLbl"></span><span>84 mo</span></div>
       </div>
 
-      <!-- interest-free -->
       <div class="field">
         <div class="fieldhead"><span class="fieldlabel">Interest-free months</span>
           <span class="hint" style="display:flex;align-items:center;gap:6px;color:var(--muted)">
@@ -184,7 +180,6 @@
         <div class="ticks"><span>0 mo</span><span id="splitLbl"></span><span id="freeMax"></span></div>
       </div>
 
-      <!-- rate -->
       <div class="field">
         <div class="fieldhead"><span class="fieldlabel">Interest rate</span>
           <span class="hint" style="display:flex;align-items:center;gap:6px;color:var(--muted)">
@@ -196,7 +191,6 @@
       <p class="note" id="note"></p>
     </div>
 
-    <!-- results -->
     <div class="results">
       <div class="reyebrow">Monthly installment</div>
       <div class="monthly" id="rMonthly"></div>
