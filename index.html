@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Land Installment Calculator</title>
 <meta name="theme-color" content="#14b8a6" />
+<link rel="manifest" href="manifest.json" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -510,29 +511,11 @@
     }catch(e){ alert('Could not create the file: '+e.message); }
   }
 
-  // ---- install as app (PWA) — fully self-contained, no extra files ----
+  // ---- install as app (PWA) — uses real manifest.json + sw.js for a proper home-screen icon ----
   var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
-  try{
-    var icon="data:image/svg+xml;utf8,"+encodeURIComponent(
-      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'>"+
-      "<rect width='180' height='180' rx='40' fill='#14b8a6'/>"+
-      "<rect x='46' y='46' width='88' height='88' rx='10' fill='#ffffff'/>"+
-      "<path d='M75 46v88M104 46v88M46 75h88M46 104h88' stroke='#14b8a6' stroke-width='6'/>"+
-      "</svg>");
-    var manifest={
-      name:"Land Installment Calculator",
-      short_name:"Perch Calc",
-      start_url:location.href.split('#')[0],
-      scope:".",
-      display:"standalone",
-      background_color:"#f1f5f9",
-      theme_color:"#14b8a6",
-      icons:[{src:icon,sizes:"512x512",type:"image/svg+xml",purpose:"any"}]
-    };
-    var l=document.createElement('link'); l.rel='manifest';
-    l.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
-    document.head.appendChild(l);
-  }catch(e){}
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  }
 
   var deferredPrompt=null;
   window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferredPrompt=e;
