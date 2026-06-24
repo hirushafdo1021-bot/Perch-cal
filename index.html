@@ -39,10 +39,18 @@
     display:flex;flex-direction:column;}
   /* toggle + currency */
   .toprow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;}
-  .seg{display:inline-flex;background:#f1f5f9;border-radius:999px;padding:4px;font-size:13px;font-weight:600;}
+  .seg{display:inline-flex;flex-wrap:wrap;background:#f1f5f9;border-radius:999px;padding:4px;font-size:13px;font-weight:600;}
   .seg button{border:none;background:none;padding:7px 16px;border-radius:999px;cursor:pointer;
     color:var(--muted);transition:.15s;font:inherit;font-weight:600;}
   .seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+  .subseg{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 14px;}
+  .subseg button{flex:1 1 calc(50% - 3px);border:1px solid var(--border);background:#fff;color:var(--muted);
+    padding:9px 6px;border-radius:11px;cursor:pointer;font:inherit;font-weight:600;font-size:12.5px;}
+  .subseg button.on{border-color:var(--teal);background:var(--teal-50);color:var(--teal-d);}
+  .resultfield input:disabled,input.isresult{opacity:1;background:var(--teal-50);
+    border-color:rgba(20,184,166,.4);color:var(--teal-d);font-weight:700;cursor:default;}
+  input[type=range]:disabled{opacity:.35;cursor:default;}
+  .resulttag{font-size:10px;font-weight:700;color:#fff;background:var(--teal);border-radius:6px;padding:2px 7px;margin-left:6px;text-transform:uppercase;letter-spacing:.3px;}
   select{font:inherit;font-size:13px;font-weight:600;color:#334155;background:#f1f5f9;
     border:none;border-radius:999px;padding:7px 12px;cursor:pointer;}
   /* labels */
@@ -191,6 +199,7 @@
         <div class="seg">
           <button id="m-flat" class="on" onclick="setMethod('flat')">Flat rate</button>
           <button id="m-red" onclick="setMethod('reducing')">Reducing balance</button>
+          <button id="m-cust" onclick="setMethod('custom')">Custom</button>
         </div>
         <select id="cur" onchange="render()">
           <option value="Rs.">LKR</option><option value="$">USD</option>
@@ -211,15 +220,33 @@
 
       <!-- down -->
       <div class="field">
-        <div class="fieldhead"><span class="fieldlabel">Down payment</span><span class="hint" id="downHint"></span></div>
+        <div class="fieldhead"><span class="fieldlabel">Down payment <span class="resulttag" id="downTag" style="display:none">result</span></span><span class="hint" id="downHint"></span></div>
         <div class="moneywrap"><span id="downSym">Rs.</span>
           <input type="number" id="down" value="1000000" oninput="onField('down')"></div>
         <input type="range" id="downR" min="0" max="100" oninput="onSlider('down')">
       </div>
 
+      <!-- custom: choose what to solve for -->
+      <div id="solveRow" style="display:none">
+        <div class="fieldhead" style="margin-bottom:6px"><span class="eyebrow">CUSTOM \u2014 SOLVE FOR</span></div>
+        <div class="subseg">
+          <button id="s-monthly" onclick="setSolve('monthly')">Monthly payment</button>
+          <button id="s-months" class="on" onclick="setSolve('months')">Number of months</button>
+          <button id="s-rate" onclick="setSolve('rate')">Interest rate</button>
+          <button id="s-down" onclick="setSolve('down')">Down payment</button>
+        </div>
+      </div>
+
+      <!-- custom: monthly payment input -->
+      <div class="field" id="monthlyField" style="display:none">
+        <div class="fieldhead"><span class="fieldlabel">Monthly payment <span class="resulttag" id="monthlyTag" style="display:none">result</span></span></div>
+        <div class="moneywrap"><span id="monthlySym">Rs.</span>
+          <input type="number" id="monthly" value="250000" oninput="onField('monthly')"></div>
+      </div>
+
       <!-- term -->
-      <div class="field">
-        <div class="fieldhead"><span class="fieldlabel">Term</span>
+      <div class="field" id="termField">
+        <div class="fieldhead"><span class="fieldlabel">Term <span class="resulttag" id="termTag" style="display:none">result</span></span>
           <span class="hint" style="display:flex;align-items:center;gap:6px;color:var(--muted)">
             <input type="number" id="months" class="smallbox" value="24" oninput="onField('months')">months</span></div>
         <input type="range" id="monthsR" min="1" max="84" step="1" value="24" oninput="onSlider('months')">
@@ -227,7 +254,7 @@
       </div>
 
       <!-- interest-free -->
-      <div class="field">
+      <div class="field" id="freeField">
         <div class="fieldhead"><span class="fieldlabel">Interest-free months</span>
           <span class="hint" style="display:flex;align-items:center;gap:6px;color:var(--muted)">
             <input type="number" id="free" class="smallbox" value="0" oninput="onField('free')">at 0%</span></div>
@@ -236,8 +263,8 @@
       </div>
 
       <!-- rate -->
-      <div class="field">
-        <div class="fieldhead"><span class="fieldlabel">Interest rate</span>
+      <div class="field" id="rateField">
+        <div class="fieldhead"><span class="fieldlabel">Interest rate <span class="resulttag" id="rateTag" style="display:none">result</span></span>
           <span class="hint" style="display:flex;align-items:center;gap:6px;color:var(--muted)">
             <input type="number" id="rate" class="smallbox" value="12" step="0.5" oninput="onField('rate')">% / year</span></div>
         <input type="range" id="rateR" min="0" max="60" step="0.5" value="12" oninput="onSlider('rate')">
@@ -285,7 +312,8 @@
 <script>
   var state = {
     tiers:[{price:"600000",count:"5"},{price:"450000",count:"5"}],
-    down:"1000000", months:"24", free:"0", rate:"12", method:"flat"
+    down:"1000000", months:"24", free:"0", rate:"12", monthly:"250000",
+    method:"flat", solveFor:"months"
   };
   function clampNum(v){var n=parseFloat(v);return (isFinite(n)&&n>=0)?n:0;}
   function sym(){return document.getElementById("cur").value;}
@@ -295,6 +323,13 @@
   function setMethod(m){state.method=m;
     document.getElementById("m-flat").className=(m==="flat")?"on":"";
     document.getElementById("m-red").className=(m==="reducing")?"on":"";
+    document.getElementById("m-cust").className=(m==="custom")?"on":"";
+    render();}
+  function setSolve(s){state.solveFor=s;
+    document.getElementById("s-monthly").className=(s==="monthly")?"on":"";
+    document.getElementById("s-months").className=(s==="months")?"on":"";
+    document.getElementById("s-rate").className=(s==="rate")?"on":"";
+    document.getElementById("s-down").className=(s==="down")?"on":"";
     render();}
 
   function makeInput(cls,ph,val,step){
@@ -362,30 +397,96 @@
     dR.max=Math.max(totalPrice,1); dR.value=Math.min(down,totalPrice);
     var fR=document.getElementById("freeR"); fR.max=n; fR.value=Math.min(fM,n);
 
+    var monthlyInput=clampNum(state.monthly);
     var monthly,totalInterest,installmentsTotal;
-    if(state.method==="flat"){
-      totalInterest=principal*(rate/100)*(chargeable/12);
-      installmentsTotal=principal+totalInterest;
-      monthly=installmentsTotal/n;
-      document.getElementById("note").textContent="Flat rate: interest is charged on the full financed amount, but only for the months outside the interest-free period. Common for retail hire-purchase plans.";
-    }else{
-      var mr=rate/100/12;
-      if(mr===0||chargeable===0){monthly=principal/n;installmentsTotal=principal;totalInterest=0;}
-      else{var ann=(1-Math.pow(1+mr,-chargeable))/mr;monthly=principal/(fM+ann);
-        installmentsTotal=monthly*n;totalInterest=installmentsTotal-principal;}
-      document.getElementById("note").textContent="Reducing balance: the interest-free months run at 0%, then interest is charged on the remaining balance each month. Total interest comes out lower.";
+    var noteEl=document.getElementById("note");
+
+    // show/hide controls per mode
+    var custom=(state.method==="custom"), solve=state.solveFor;
+    document.getElementById("solveRow").style.display=custom?"":"none";
+    document.getElementById("monthlyField").style.display=custom?"":"none";
+    document.getElementById("freeField").style.display=custom?"none":"";
+    document.getElementById("monthlySym").innerHTML=sym();
+    function setResult(boxId,sliderId,tagId,isR){
+      var b=document.getElementById(boxId); if(b){b.disabled=isR;b.classList.toggle("isresult",isR);}
+      if(sliderId){var s=document.getElementById(sliderId); if(s)s.disabled=isR;}
+      if(tagId){var t=document.getElementById(tagId); if(t)t.style.display=isR?"":"none";}
     }
+    setResult("monthly",null,"monthlyTag",custom&&solve==="monthly");
+    setResult("months","monthsR","termTag",custom&&solve==="months");
+    setResult("rate","rateR","rateTag",custom&&solve==="rate");
+    setResult("down","downR","downTag",custom&&solve==="down");
+
+    if(!custom){
+      if(state.method==="flat"){
+        totalInterest=principal*(rate/100)*(chargeable/12);
+        installmentsTotal=principal+totalInterest;
+        monthly=installmentsTotal/n;
+        noteEl.textContent="Flat rate: interest is charged on the full financed amount, but only for the months outside the interest-free period. Common for retail hire-purchase plans.";
+      }else{
+        var mr=rate/100/12;
+        if(mr===0||chargeable===0){monthly=principal/n;installmentsTotal=principal;totalInterest=0;}
+        else{var ann=(1-Math.pow(1+mr,-chargeable))/mr;monthly=principal/(fM+ann);
+          installmentsTotal=monthly*n;totalInterest=installmentsTotal-principal;}
+        noteEl.textContent="Reducing balance: the interest-free months run at 0%, then interest is charged on the remaining balance each month. Total interest comes out lower.";
+      }
+    }else{
+      // custom: flat-rate relationships, interest-free not used
+      fM=0; chargeable=n;
+      if(solve==="monthly"){
+        totalInterest=principal*(rate/100)*(n/12);
+        installmentsTotal=principal+totalInterest;
+        monthly=installmentsTotal/n;
+        document.getElementById("monthly").value=Math.round(monthly);
+        noteEl.textContent="Custom: you set the term and rate \u2014 the monthly payment is calculated (flat-rate basis).";
+      }else if(solve==="rate"){
+        monthly=monthlyInput; installmentsTotal=monthly*n; totalInterest=installmentsTotal-principal;
+        rate=(principal>0&&n>0)?(totalInterest/(principal*(n/12)))*100:0;
+        document.getElementById("rate").value=(Math.round(rate*100)/100);
+        noteEl.textContent= totalInterest<0
+          ? "Custom: this monthly \u00d7 term is below the financed amount, so the implied rate is negative. Raise the monthly payment or term."
+          : "Custom: you set the monthly payment and term \u2014 the implied flat interest rate is calculated.";
+      }else if(solve==="down"){
+        monthly=monthlyInput; installmentsTotal=monthly*n;
+        var princ=installmentsTotal/(1+rate*n/1200); // flat-rate principal that these terms cover
+        if(princ>totalPrice){ down=0; principal=totalPrice; totalInterest=installmentsTotal-principal;
+          noteEl.textContent="Custom: these terms cover the full price \u2014 no down payment is needed (you'd pay extra in interest)."; }
+        else if(princ<0){ down=totalPrice; principal=0; installmentsTotal=0; totalInterest=0;
+          noteEl.textContent="Custom: that monthly payment is too small \u2014 almost the whole price would need to be paid upfront."; }
+        else { principal=princ; down=Math.max(0,totalPrice-princ); totalInterest=installmentsTotal-principal;
+          noteEl.textContent="Custom: you set the monthly payment, term and rate \u2014 the down payment needed is calculated (flat-rate basis)."; }
+        document.getElementById("down").value=Math.round(down);
+        var dR2=document.getElementById("downR"); dR2.max=Math.max(totalPrice,1); dR2.value=Math.min(down,totalPrice);
+      }else{ // solve months
+        monthly=monthlyInput;
+        var perMonthInt=principal*(rate/100)/12;
+        if(monthly<=0){ n=1; installmentsTotal=0; totalInterest=0; document.getElementById("months").value="";
+          noteEl.textContent="Enter a monthly payment to solve for the number of months."; }
+        else if(rate>0 && monthly<=perMonthInt){ installmentsTotal=0; totalInterest=0; document.getElementById("months").value="\u2014";
+          noteEl.textContent="That monthly payment is too low to ever clear the balance at this rate. Increase the monthly amount or lower the rate."; }
+        else{
+          var Nf=(rate>0)?(principal/(monthly-perMonthInt)):(principal/monthly);
+          installmentsTotal=monthly*Nf; totalInterest=installmentsTotal-principal; n=Math.max(1,Nf);
+          var disp=(Math.abs(Nf-Math.round(Nf))<0.05)?String(Math.round(Nf)):Nf.toFixed(1);
+          document.getElementById("months").value=disp;
+          noteEl.textContent="Custom: you set the monthly payment and rate \u2014 the number of months to pay off is calculated (flat-rate basis).";
+        }
+      }
+    }
+    ['months','rate','monthly','down'].forEach(function(id){var el=document.getElementById(id);
+      if(el&&!el.disabled&&document.activeElement!==el)el.value=state[id];});
+    var nDisp=(Math.abs(n-Math.round(n))<0.05)?String(Math.round(n)):n.toFixed(1);
     var fullPayment=down+installmentsTotal;
     var downPct=totalPrice>0?Math.round(down/totalPrice*100):0;
     var intPct=fullPayment>0?Math.round(totalInterest/fullPayment*100):0;
 
     document.getElementById("downHint").textContent=downPct+"% of price";
-    document.getElementById("yearLbl").textContent=(clampNum(state.months)/12).toFixed(clampNum(state.months)%12===0?0:1)+" yr";
+    document.getElementById("yearLbl").textContent=(n/12).toFixed(n%12===0?0:1)+" yr";
     document.getElementById("splitLbl").textContent=fM+" free, "+chargeable+" charged";
-    document.getElementById("freeMax").textContent=n+" mo";
+    document.getElementById("freeMax").textContent=Math.round(n)+" mo";
 
     document.getElementById("rMonthly").textContent=money(monthly);
-    document.getElementById("rMonths").innerHTML="&times; "+n+" months";
+    document.getElementById("rMonths").innerHTML="&times; "+nDisp+" months";
     document.getElementById("rFull").textContent=money(fullPayment);
     document.getElementById("rInterest").textContent=money(totalInterest);
     document.getElementById("rIntPct").textContent=intPct+"% of full payment";
@@ -399,15 +500,15 @@
     document.getElementById("xTotal").textContent=money(totalPrice);
     document.getElementById("xDown").textContent=money(down);
     document.getElementById("xFin").textContent=money(principal);
-    document.getElementById("xFree").textContent=fM+" months";
+    document.getElementById("xFree").textContent=custom?"n/a":(fM+" months");
     document.getElementById("xInst").textContent=money(installmentsTotal);
 
     // ---- store the current result so the PNG/PDF exporter can draw it ----
     LAST={
       tiers:state.tiers.map(function(t){var pr=clampNum(t.price),c=clampNum(t.count);return {price:pr,count:c,sub:pr*c};}),
       totalPrice:totalPrice, totalPerches:totalPerches, down:down, downPct:downPct,
-      principal:principal, n:n, fM:fM, chargeable:chargeable, rate:rate,
-      method:(state.method==="flat")?"Flat rate":"Reducing balance",
+      principal:principal, n:Math.round(n*10)/10, fM:fM, chargeable:chargeable, rate:Math.round(rate*100)/100,
+      method:(state.method==="flat")?"Flat rate":(state.method==="reducing"?"Reducing balance":"Custom"),
       monthly:monthly, installmentsTotal:installmentsTotal, fullPayment:fullPayment,
       totalInterest:totalInterest, intPct:intPct
     };
