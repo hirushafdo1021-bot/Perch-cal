@@ -220,7 +220,7 @@
 
       <!-- down -->
       <div class="field">
-        <div class="fieldhead"><span class="fieldlabel">Down payment <span class="resulttag" id="downTag" style="display:none">result</span></span><span class="hint" id="downHint"></span></div>
+        <div class="fieldhead"><span class="fieldlabel">Down payment <span class="resulttag" id="downTag" style="display:none">result</span></span><span class="hint" style="display:flex;align-items:center;gap:6px;color:var(--muted)"><input type="number" id="downPct" class="smallbox" min="0" max="100" step="1" oninput="onDownPct()">% of price</span></div>
         <div class="moneywrap"><span id="downSym">Rs.</span>
           <input type="number" id="down" value="1000000" oninput="onField('down')"></div>
         <input type="range" id="downR" min="0" max="100" oninput="onSlider('down')">
@@ -372,6 +372,13 @@
   function onField(id){state[id]=document.getElementById(id).value;render();}
   function onSlider(id){state[id]=document.getElementById(id+"R").value;
     document.getElementById(id).value=state[id];render();}
+  function onDownPct(){
+    var pct=clampNum(document.getElementById("downPct").value); if(pct>100)pct=100;
+    var tp=0; state.tiers.forEach(function(t){tp+=clampNum(t.price)*clampNum(t.count);});
+    state.down=String(Math.round(tp*pct/100));
+    document.getElementById("down").value=state.down;
+    render();
+  }
 
   function render(){
     var totalPrice=0,totalPerches=0;
@@ -490,7 +497,10 @@
     var downPct=totalPrice>0?Math.round(down/totalPrice*100):0;
     var intPct=fullPayment>0?Math.round(totalInterest/fullPayment*100):0;
 
-    document.getElementById("downHint").textContent=downPct+"% of price";
+    var dpEl=document.getElementById("downPct");
+    if(dpEl){ var dpResult=(custom&&solve==="down");
+      dpEl.disabled=dpResult; dpEl.classList.toggle("isresult",dpResult);
+      if(document.activeElement!==dpEl) dpEl.value=downPct; }
     document.getElementById("yearLbl").textContent=(n/12).toFixed(n%12===0?0:1)+" yr";
     document.getElementById("splitLbl").textContent=fM+" free, "+chargeable+" charged";
     document.getElementById("freeMax").textContent=Math.round(n)+" mo";
